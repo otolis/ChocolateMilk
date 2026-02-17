@@ -35,7 +35,7 @@ const TIERS = [
 ];
 
 function App() {
-  const { user, loading, login, logout, isEditor, displayName } = useAuth();
+  const { user, loading, login, logout, isEditor, displayName, authError } = useAuth();
   const [items, setItems] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -129,6 +129,7 @@ function App() {
               <LogIn size={18} /> Sign in with Google
             </button>
           )}
+          {authError && <div style={{color:'red',fontSize:'12px',maxWidth:'300px'}}>{authError}</div>}
           <ShareButton targetRef={tierListRef} />
           {isEditor && (
             <button className="btn-add" onClick={() => setIsAddModalOpen(true)}>

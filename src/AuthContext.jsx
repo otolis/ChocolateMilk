@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   getAuth,
   onAuthStateChanged,
-  signInWithRedirect,
+  signInWithPopup,
   signOut,
   GoogleAuthProvider
 } from 'firebase/auth';
@@ -31,14 +31,24 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, [auth]);
 
-  const login = () => signInWithRedirect(auth, new GoogleAuthProvider());
+  const [authError, setAuthError] = useState(null);
+
+  const login = async () => {
+    try {
+      setAuthError(null);
+      await signInWithPopup(auth, new GoogleAuthProvider());
+    } catch (err) {
+      console.error('Auth error:', err.code, err.message);
+      setAuthError(err.code + ': ' + err.message);
+    }
+  };
   const logout = () => signOut(auth);
 
   const isEditor = user && ALLOWED_EDITORS.includes(user.email);
   const displayName = user ? (EMAIL_TO_NAME[user.email] || user.displayName || 'Guest') : null;
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isEditor, displayName }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isEditor, displayName, authError }}>
       {children}
     </AuthContext.Provider>
   );
