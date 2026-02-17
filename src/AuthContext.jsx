@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   getAuth,
   onAuthStateChanged,
-  signInWithPopup,
+  signInWithRedirect,
   signOut,
   GoogleAuthProvider
 } from 'firebase/auth';
@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, [auth]);
 
-  const login = () => signInWithPopup(auth, new GoogleAuthProvider());
+  const login = () => signInWithRedirect(auth, new GoogleAuthProvider());
   const logout = () => signOut(auth);
 
   const isEditor = user && ALLOWED_EDITORS.includes(user.email);

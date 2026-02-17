@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(npm install:*)",
+      "Bash(gh auth:*)",
+      "Bash(npm run build:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nSokolatouxo Tier List - full app with auth, history, sharing\n\nFeatures:\n- Drag-and-drop tier list with dnd-kit\n- Image upload via ImgBB\n- Google Auth \\(Tolis & Giannis as editors, guests view-only\\)\n- Notes/reviews on items\n- History/changelog tracking all moves, adds, deletes\n- Share/export tier list as PNG screenshot\n- Mobile responsive, dark theme\n- Auto-deploy to GitHub Pages\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
