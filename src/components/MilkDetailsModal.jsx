@@ -33,7 +33,7 @@ async function uploadToImgBB(file) {
 }
 
 export function MilkDetailsModal({ isOpen, onClose, item }) {
-  const { user, isEditor, displayName } = useAuth();
+  const { user, isEditor, displayName, login } = useAuth();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -54,8 +54,7 @@ export function MilkDetailsModal({ isOpen, onClose, item }) {
 
     const q = query(
       collection(db, 'comments'),
-      where('itemId', '==', item.id),
-      orderBy('createdAt', 'desc')
+      where('itemId', '==', item.id)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -63,7 +62,16 @@ export function MilkDetailsModal({ isOpen, onClose, item }) {
         id: doc.id,
         ...doc.data()
       }));
+      // Sort client-side to avoid needing a composite index in Firestore
+      docs.sort((a, b) => {
+        const timeA = a.createdAt?.seconds || 0;
+        const timeB = b.createdAt?.seconds || 0;
+        return timeB - timeA;
+      });
       setComments(docs);
+    }, (err) => {
+      console.error('onSnapshot error:', err);
+      setError('Failed to load comments: ' + err.message);
     });
 
     return () => unsubscribe();
@@ -171,6 +179,17 @@ export function MilkDetailsModal({ isOpen, onClose, item }) {
       setError('Failed to post comment.');
     } finally {
       setPostingComment(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Delete this comment?')) return;
+    
+    try {
+      await deleteDoc(doc(db, 'comments', commentId));
+    } catch (err) {
+      console.error('Failed to delete comment:', err);
+      setError('Failed to delete comment.');
     }
   };
 
@@ -301,6 +320,9 @@ export function MilkDetailsModal({ isOpen, onClose, item }) {
                       onChange={(e) => setNewComment(e.target.value)}
                       disabled={postingComment}
                     />
+                    {error && error.includes('comment') && (
+                      <div className="form-error" style={{ marginBottom: '0.75rem' }}>{error}</div>
+                    )}
                     <div className="comment-actions">
                       <button 
                         type="submit" 
@@ -322,7 +344,7 @@ export function MilkDetailsModal({ isOpen, onClose, item }) {
               ) : (
                 <div className="comment-login-hint">
                   <p>Sign in with Google to join the conversation!</p>
-                  <button className="btn-login" onClick={() => useAuth().login()}>
+                  <button className="btn-login" onClick={login}>
                     <LogIn size={18} /> Sign In
                   </button>
                 </div>
@@ -355,6 +377,15 @@ export function MilkDetailsModal({ isOpen, onClose, item }) {
                         </div>
                         <div className="comment-text">{comment.text}</div>
                       </div>
+                      {(isEditor || (user && user.uid === comment.userId)) && (
+                        <button 
+                          className="btn-delete-comment" 
+                          onClick={() => handleDeleteComment(comment.id)}
+                          title="Delete comment"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </div>
                   ))
                 ) : (

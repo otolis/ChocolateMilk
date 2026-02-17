@@ -140,7 +140,7 @@ function App() {
       </header>
 
       <DndContext
-        sensors={isEditor ? sensors : []}
+        sensors={sensors}
         collisionDetection={pointerWithin}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}

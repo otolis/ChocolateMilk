@@ -23,7 +23,7 @@ export function MilkCard({ id, item, onClick }) {
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
+      {...(isEditor ? listeners : {})}
       className={`milk-card ${!isEditor ? 'milk-card--view-only' : ''}`}
       onClick={() => onClick?.(item)}
     >
