@@ -1,9 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { 
+  doc, 
+  deleteDoc, 
+  updateDoc, 
+  collection, 
+  addDoc, 
+  onSnapshot, 
+  query, 
+  where, 
+  orderBy, 
+  serverTimestamp 
+} from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../AuthContext';
 import { logHistory } from '../historyService';
-import { X, Trash2, Loader2, Pencil, Save } from 'lucide-react';
+import { X, Trash2, Loader2, Pencil, Save, MessageSquare, Send, LogIn } from 'lucide-react';
 
 const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
 
@@ -31,6 +41,32 @@ export function MilkDetailsModal({ isOpen, onClose, item }) {
   const [editImageFile, setEditImageFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // Comments state
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [postingComment, setPostingComment] = useState(false);
+
+  // Fetch comments
+  useEffect(() => {
+    if (!isOpen || !item?.id) return;
+
+    const q = query(
+      collection(db, 'comments'),
+      where('itemId', '==', item.id),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setComments(docs);
+    });
+
+    return () => unsubscribe();
+  }, [isOpen, item?.id]);
 
   useEffect(() => {
     if (item) {
@@ -111,6 +147,29 @@ export function MilkDetailsModal({ isOpen, onClose, item }) {
       setError('Failed to save. Check console for details.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePostComment = async (e) => {
+    e?.preventDefault();
+    if (!user || !newComment.trim()) return;
+
+    setPostingComment(true);
+    try {
+      await addDoc(collection(db, 'comments'), {
+        itemId: item.id,
+        text: newComment.trim(),
+        userId: user.uid,
+        userName: displayName,
+        userPhoto: user.photoURL,
+        createdAt: serverTimestamp(),
+      });
+      setNewComment('');
+    } catch (err) {
+      console.error('Failed to post comment:', err);
+      setError('Failed to post comment.');
+    } finally {
+      setPostingComment(false);
     }
   };
 
@@ -220,6 +279,88 @@ export function MilkDetailsModal({ isOpen, onClose, item }) {
                 }
               </button>
             )}
+
+            <div className="comments-section">
+              <div className="comments-header">
+                <MessageSquare size={20} />
+                <span>Comments ({comments.length})</span>
+              </div>
+
+              {user ? (
+                <form className="comment-input-area" onSubmit={handlePostComment}>
+                  <div className="user-info" style={{ marginBottom: '1rem' }}>
+                    <img src={user.photoURL} alt={displayName} className="user-avatar" />
+                    <span className="user-name">{displayName}</span>
+                  </div>
+                  <div className="comment-input-wrapper">
+                    <textarea
+                      className="comment-textarea"
+                      placeholder="Share your thoughts on this chocolate milk..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      disabled={postingComment}
+                    />
+                    <div className="comment-actions">
+                      <button 
+                        type="submit" 
+                        className="btn-post-comment"
+                        disabled={postingComment || !newComment.trim()}
+                      >
+                        {postingComment ? (
+                          <Loader2 className="animate-spin" size={16} />
+                        ) : (
+                          <>
+                            <Send size={16} />
+                            Post
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              ) : (
+                <div className="comment-login-hint">
+                  <p>Sign in with Google to join the conversation!</p>
+                  <button className="btn-login" onClick={() => useAuth().login()}>
+                    <LogIn size={18} /> Sign In
+                  </button>
+                </div>
+              )}
+
+              <div className="comments-list">
+                {comments.length > 0 ? (
+                  comments.map((comment) => (
+                    <div key={comment.id} className="comment-card">
+                      <img 
+                        src={comment.userPhoto || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                        alt={comment.userName} 
+                        className="comment-avatar" 
+                      />
+                      <div className="comment-body">
+                        <div className="comment-meta">
+                          <span className="comment-author">{comment.userName}</span>
+                          <span className="comment-date">
+                            {comment.createdAt?.toDate ? (
+                              new Date(comment.createdAt.toDate()).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
+                            ) : (
+                              'Just now'
+                            )}
+                          </span>
+                        </div>
+                        <div className="comment-text">{comment.text}</div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-comments">No comments yet. Be the first to leave one!</div>
+                )}
+              </div>
+            </div>
           </>
         )}
       </div>
