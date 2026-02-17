@@ -24,6 +24,8 @@ function formatEntry(entry) {
       return `${entry.userName} added ${entry.itemName}`;
     case 'deleted':
       return `${entry.userName} deleted ${entry.itemName}`;
+    case 'edited':
+      return `${entry.userName} edited ${entry.itemName}`;
     default:
       return `${entry.userName} did something with ${entry.itemName}`;
   }

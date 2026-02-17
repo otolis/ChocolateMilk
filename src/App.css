@@ -369,6 +369,30 @@
   line-height: 1.5;
 }
 
+/* ── Edit Button ──────────────────────────── */
+.btn-edit {
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.65rem;
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-edit:hover {
+  color: #ffeb3b;
+  border-color: #ffeb3b;
+  background: rgba(255, 235, 59, 0.08);
+}
+
 /* ── Delete Button ─────────────────────────── */
 .btn-delete {
   width: 100%;
