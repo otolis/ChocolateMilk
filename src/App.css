@@ -702,6 +702,7 @@
   background: rgba(255, 255, 255, 0.02);
   border-radius: 10px;
   border: 1px dashed #444;
+  margin-bottom: 2rem;
 }
 
 .comment-login-hint p {
