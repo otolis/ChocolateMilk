@@ -105,8 +105,7 @@ export function MilkDetailsModal({ isOpen, onClose, item }) {
         userName: displayName,
       });
 
-      setEditing(false);
-      setEditImageFile(null);
+      onClose();
     } catch (err) {
       console.error('Failed to save:', err);
       setError('Failed to save. Check console for details.');
